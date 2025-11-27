@@ -3,7 +3,7 @@ import Link from "next/link";
 import { shadow } from "../app/Styles/utils";
 import { Button } from "./ui/button";
 import DarkModeToggle from "./DarkModeToggle";
-import LogoutButton from "./LogoutButton";
+import LogOutButton from "./LogOutButton";
 import { getUser } from "@/app/auth/server";
 
 async function Header() {
@@ -30,7 +30,7 @@ async function Header() {
 
       <div className="flex gap-4">
         {user ? (
-          <LogoutButton />
+          <LogOutButton />
         ) : (
           <>
             <Button asChild>

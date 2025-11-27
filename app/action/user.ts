@@ -1,21 +1,11 @@
 "use server"
 
+import { PrismaClient } from "@prisma/client";
 import { createClient } from "../auth/server"
 import { handleError } from "@/lib/utils"
 
-export async function sendMagicLink(email: string) {
-  const supabase = await createClient();
+const prisma = new PrismaClient();
 
-  // supabase-js v2: use signInWithOtp for magic links
-  const { data, error } = await supabase.auth.signInWithOtp({ email });
-
-  if (error) {
-    console.error('sendMagicLink error:', error);
-    return { success: false, error };
-  }
-
-  return { success: true, data };
-}
 
 export const loginAction = async (email: string, password: string ) => {
     try {
@@ -34,6 +24,21 @@ export const loginAction = async (email: string, password: string ) => {
     }
 }
 
+export const logOutAction = async () => {
+    try {
+        const { auth } = await createClient();
+
+        const { error } = await auth.signOut ();
+
+        if (error) throw error;
+
+        return { errorMessage: null };
+    } catch (error) {
+        return handleError(error);
+    }
+}
+
+
 export const signUpAction = async (email: string, password: string ) => {
     try {
         const { auth } = await createClient();
@@ -51,9 +56,13 @@ export const signUpAction = async (email: string, password: string ) => {
         if (error) throw error;
 
         const userId = data.user?.id;
-        if (!userId) throw new Error("Error signing up");
-
         // Add user to database
+        await prisma.user.create({
+            data: {
+                id: userId,
+                email,
+            },
+        });
 
         return { errorMessage: null };
     } catch (error) {
