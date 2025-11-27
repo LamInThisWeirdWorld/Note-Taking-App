@@ -9,6 +9,7 @@ import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { loginAction, signUpAction, sendMagicLink } from "@/app/action/user";
 
 type Props = {
   type: "login" | "signUp";
@@ -20,7 +21,36 @@ function AuthForm({ type }: Props) {
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = async (formData: FormData) => {
-    console.log("Form submitted");
+    console.log("handleSubmit called aaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    startTransition(async () => {
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
+
+      console.log("Form Data:", { email, password });
+
+      let errorMessage;
+      let title;
+      let description;
+
+      if (isLoginForm) {
+        errorMessage = (await loginAction(email, password)).errorMessage;
+        console.log(email);
+        title = "Logged in";
+        description = "You have successfully logged in.";
+      } else {
+        errorMessage = (await signUpAction(email, password)).errorMessage;
+        console.log(email);
+        title = "Signed up";
+        description = "Check your email for confirmation link.";
+      }
+
+      if (!errorMessage) {
+        toast.success(title!, { description });
+        router.replace("/");
+      } else {
+        toast.error("Error: " + errorMessage);
+      }
+    });
   };
 
   return (
@@ -38,6 +68,7 @@ function AuthForm({ type }: Props) {
           />
         </div>
       </CardContent>
+
       <CardContent>
         <div className="flex flex-col space-y-1.5">
           <Label htmlFor="password">Password</Label>
@@ -62,6 +93,7 @@ function AuthForm({ type }: Props) {
             "Sign Up"
           )}
         </Button>
+
         <p>
           {isLoginForm
             ? "Don't have an account yet?"
