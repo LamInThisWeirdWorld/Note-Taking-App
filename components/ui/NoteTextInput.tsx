@@ -2,7 +2,10 @@
 
 import { useSearchParams } from "next/navigation";
 import { Textarea } from "./textarea";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect } from "react";
+import { debounceTimeout } from "@/lib/constants";
+import useNote from "@/hooks/useNote";
+import { updateNoteAction } from "@/app/action/note";
 
 type Props = {
   noteId: string;
@@ -13,12 +16,21 @@ let updateTimeout: NodeJS.Timeout;
 
 function NoteTextInput({ noteId, startingNoteText }: Props) {
   const noteIdParam = useSearchParams().get("noteId") || "";
-  const { noteId, setNodeId } = useNote();
+  const { noteText, setNoteText } = useNote();
+
+  useEffect(() => {
+    if (noteIdParam === noteId) {
+      setNoteText(startingNoteText);
+    }
+  }, [noteIdParam, noteId, setNoteText, startingNoteText]);
 
   const handleUpdateNote = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
+
     setNoteText(text);
-    clearTimeout = setTimeout(() => {
+
+    clearTimeout(updateTimeout);
+    updateTimeout = setTimeout(() => {
       updateNoteAction(noteId, text);
     }, debounceTimeout);
   };
